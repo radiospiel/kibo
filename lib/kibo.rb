@@ -3,10 +3,10 @@ require "pp"
 module Kibo
 end
 
-require_relative "kibo_log"
-require_relative "kibo_system"
-require_relative "kibo_config"
-require_relative "kibo_commandline"
+require_relative "kibo/log"
+require_relative "kibo/system"
+require_relative "kibo/config"
+require_relative "kibo/commandline"
 
 module Kibo
   extend self
@@ -148,6 +148,10 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
 
     MSG
   end
+  
+  public
+  
+  def run
+    self.send CommandLine.subcommand
+  end
 end
-
-Kibo.send Kibo::CommandLine.subcommand
