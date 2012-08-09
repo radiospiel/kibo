@@ -22,6 +22,11 @@ module Kibo::CommandLine
     parse unless @options
     @subcommand
   end
+
+  def self.args
+    parse unless @options
+    @args
+  end
   
   def self.parse_and_get(name)
     parse unless @options
@@ -51,7 +56,7 @@ EOS
       opt :environment, "Set environment", :short => 'e', :type => String, :default => "staging"
       opt :kibofile, "Set Kibofile name", :short => 'k', :type => String, :default => "Kibofile"
       opt :procfile, "Set Procfile name", :short => 'p', :type => String, :default => "Procfile"
-      opt :dry_run, "Do nothing", :short => 'n'
+      opt :dry, "Do nothing", :short => 'n'
 
       stop_on SUBCOMMANDS
     end
@@ -66,13 +71,22 @@ EOS
      
     subcommand_options = 
       case @subcommand
-      when "spinup" # parse delete options
+      when "spinup" 
         Trollop::options do
           opt :force, "Ignore missing targets.", :short => "f"
+        end
+      when "deploy" 
+        Trollop::options do
+          opt :force, "Ignore outstanding changes.", :short => "f"
+        end
+      when "create" 
+        Trollop::options do
+          opt :all, "Create all missing targets.", :short => "a"
         end
       end
     
     @options.update subcommand_options if subcommand_options
-  end
 
+    @args = ARGV.dup
+  end
 end

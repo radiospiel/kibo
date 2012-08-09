@@ -151,6 +151,51 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
   
   public
   
+  def create
+    instances = if CommandLine.all? 
+      missing_remotes
+    else
+      CommandLine.args
+    end
+    
+    
+    # pp CommandLine.all?
+    # pp missing_remotes
+    # instances = missing_remotes 
+    # pp instances
+    
+    # only create instances that are actually missing.
+    extra_instances = instances - missing_remotes
+    unless extra_instances.empty?
+      E <<-MSG
+kibo cannot create these instances for you: #{extra_instances.map(&:inspect).join(", ")}, because I don't not know anything about these.
+MSG
+    end
+
+    if instances.empty?
+      W "Nothing to do."
+      exit 0
+    end
+    
+    E "instances", instances
+    
+    puts <<-MSG
+I am going to create these instances: #{instances.map(&:inspect).join(", ")}. Is this what you want?
+MSG
+
+    instances.each do |instance|
+      create_instance(instance)
+    end
+  end
+  
+  private
+  
+  def create_instance(remote)
+    W "create_instance", remote
+  end
+  
+  public
+  
   def run
     self.send CommandLine.subcommand
   end

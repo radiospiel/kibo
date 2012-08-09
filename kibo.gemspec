@@ -16,5 +16,5 @@ Gem::Specification.new do |gem|
   gem.files = Dir["**/*"].select { |d| d =~ %r{^(README|bin/|data/|ext/|lib/|spec/|test/)} }
   gem.files << "man/kibo.1"
 
-  gem.add_dependency 'thor', '>= 0.13.6'
+  # gem.add_dependency 'thor', '>= 0.13.6'
 end

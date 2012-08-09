@@ -2,8 +2,6 @@ module Kibo::System
   extend self
   
   def heroku(*args)
-    W "heroku " + args.join(" ")
-    return
     sys! "heroku", *args
   end
 
@@ -12,14 +10,22 @@ module Kibo::System
   end
 
   def sys(*args)
-    cmd = args.map(&:to_s).join(" ")
-    stdout = Kernel.send "`", "bash -c \"#{cmd}\""
+    quiet = args.pop if args.last == :quiet
+    cmd = args.map(&:to_s).join(" ") 
+    W cmd unless quiet
     
-    stdout.chomp if $?.exitstatus == 0
+    # A command is run because it either is "quiet", i.e. is non-obstrusive anyway,
+    # or we are not in a dry. Dry run mode could go with some improvements, though.
+    if quiet || !Kibo::CommandLine.dry?
+      stdout = Kernel.send "`", "bash -c \"#{cmd}\""
+      stdout.chomp if $?.exitstatus == 0
+    else
+      ""
+    end
   end
 
   def sys!(*args)
-    sys(*args) || die("Command failed", args.join(" "))
+    sys(*args) || E("Command failed: " + args.join(" "))
   end
 end
 

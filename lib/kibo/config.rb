@@ -75,7 +75,7 @@ class Kibo::Config
   end
 
   def remotes_by_process
-    remotes = Kibo.git("remote").split("\n")
+    remotes = Kibo.git("remote", :quiet).split("\n")
     
     @remotes_by_process ||= remotes.group_by do |remote| 
       case remote
