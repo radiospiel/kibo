@@ -1,0 +1,52 @@
+kibo(1) -- manage heroku applications
+================================================
+
+## SYNOPSIS
+
+`kibo [options] create`<br>
+`kibo [options] deploy`<br>
+`kibo [options] spinup`<br>
+`kibo [options] spindown`<br>
+`kibo [options] reconfigure`
+
+## DESCRIPTION
+
+kibo is an awesome program that does something very, very important.
+
+## DESCRIPTION
+
+Foreman is a manager for Procfile-based applications. Its aim is to
+abstract away the details of the Procfile format, and allow you to either run
+your application directly or export it to some other process management
+format.
+
+## GLOBAL OPTIONS
+
+
+The following options control how kibo is run:
+
+  * `-e`, `--environment`:
+    Set the target environment.
+
+  * `-k`, `--kibofile`:
+    Specify the Kibofile to use.
+
+  * `-p`, `--procfile`:
+    Specify an alternate Procfile to load.
+
+
+## Kibofile
+
+An example Kibofile is this:
+
+    defaults:
+        procfile: Procfile
+        namespace: radiospiel
+    staging:
+        twirl: 1
+    production:
+        twirl: 2
+
+## COPYRIGHT
+
+Kibo is Copyright (C) 2012 Enrico Thierbach <http://radiospiel.org>
