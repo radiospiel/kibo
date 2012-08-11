@@ -114,7 +114,7 @@ module Kibo
   end
   
   def deploy_remote!(remote)
-    git "push", remote
+    git "push", remote, "master"
   end
   
   public
