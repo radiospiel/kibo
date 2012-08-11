@@ -152,32 +152,27 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
   public
   
   def create
-    instances = if CommandLine.all? 
-      missing_remotes
+    if CommandLine.all? 
+      instances = missing_remotes
+      if instances.empty?
+        W "Nothing to do."
+        exit 0
+      end
     else
-      CommandLine.args
-    end
-    
-    
-    # pp CommandLine.all?
-    # pp missing_remotes
-    # instances = missing_remotes 
-    # pp instances
-    
-    # only create instances that are actually missing.
-    extra_instances = instances - missing_remotes
-    unless extra_instances.empty?
-      E <<-MSG
+      instances = CommandLine.args
+      if instances.empty?
+        W "Add the names of the remotes to create on the command line or use the --all parameter."
+        exit 0
+      end
+
+      # only create instances that are actually missing.
+      extra_instances = instances - missing_remotes
+      unless extra_instances.empty?
+        E <<-MSG
 kibo cannot create these instances for you: #{extra_instances.map(&:inspect).join(", ")}, because I don't not know anything about these.
 MSG
+      end
     end
-
-    if instances.empty?
-      W "Nothing to do."
-      exit 0
-    end
-    
-    E "instances", instances
     
     puts <<-MSG
 I am going to create these instances: #{instances.map(&:inspect).join(", ")}. Is this what you want?
@@ -191,7 +186,8 @@ MSG
   private
   
   def create_instance(remote)
-    W "create_instance", remote
+    # TODO: Test whether these instances already exist...
+    heroku "apps:create", remote, "--remote", remote
   end
   
   public
