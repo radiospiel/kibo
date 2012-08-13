@@ -74,6 +74,10 @@ class Kibo::Config
     self["namespace"] || raise("Please define a namespace in your Kibofile.")
   end
 
+  def heroku
+    self["heroku"] || raise("Please defined the heroku entry in your Kibofile")
+  end
+
   def remotes_by_process
     remotes = Kibo.git("remote", :quiet).split("\n")
     

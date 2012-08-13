@@ -1,4 +1,5 @@
 require "pp"
+require "heroku"
 
 module Kibo
 end
@@ -152,6 +153,8 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
   public
   
   def create
+    verify_heroku_login
+    
     if CommandLine.all? 
       instances = missing_remotes
       if instances.empty?
@@ -173,20 +176,40 @@ kibo cannot create these instances for you: #{extra_instances.map(&:inspect).joi
 MSG
       end
     end
-    
-    puts <<-MSG
-I am going to create these instances: #{instances.map(&:inspect).join(", ")}. Is this what you want?
+  
+    confirm! <<-MSG
+I am going to create these instances: #{instances.map(&:inspect).join(", ")}. Is this what you want? Note:
+You are logged in at heroku as #{config.heroku}.
 MSG
 
     instances.each do |instance|
       create_instance(instance)
     end
   end
+
+  def confirm!(msg)
+    puts msg
+    puts "\n\nPress ^C to abort or return to continue."
+    
+    STDIN.read
+  end
   
   private
   
+  def verify_heroku_login
+    (Heroku::Auth.read_credentials || []).first.tap do |whoami|
+      msg = if !whoami
+        "Please log into heroku as #{config.heroku.inspect}."
+      elsif whoami != config.heroku
+        "You are currently logged into heroku as #{whoami.inspect}; please log in as #{config.heroku.inspect}."
+      end
+      
+      E "#{msg}\n\n\theroku auth:login" if msg
+    end
+  end
+  
   def create_instance(remote)
-    # TODO: Test whether these instances already exist...
+    # TODO: Test whether these instances already exist, using `heroku apps`
     heroku "apps:create", remote, "--remote", remote
   end
   
