@@ -2,6 +2,7 @@ source "http://rubygems.org"
 
 gem "heroku"
 gem "trollop"
+gem "thor"
 gem 'rake'
 
 group :development do
