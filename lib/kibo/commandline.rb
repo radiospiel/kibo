@@ -1,4 +1,5 @@
 require "trollop"
+require "kibo/version"
 
 module Kibo::CommandLine
   def self.method_missing(sym, *args, &block)
@@ -37,9 +38,9 @@ module Kibo::CommandLine
   
   def self.parse
     @options = Trollop::options do
-       version "test 1.2.3 (c) 2008 William Morgan"
+       version "kibo #{Kibo::VERSION} (c) 2012 radiospiel"
         banner <<-EOS
-kibo is an awesome program that does something very, very important.
+kibo manages multiple application roles on single heroku dynos.
 
 Usage:
 

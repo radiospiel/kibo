@@ -12,7 +12,7 @@ kibo(1) -- manage heroku applications
 
 ## DESCRIPTION
 
-kibo is an awesome program that does something very, very important.
+kibo manages multiple application roles on single heroku dynos.
 
 ## DESCRIPTION
 
