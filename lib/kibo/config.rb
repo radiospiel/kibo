@@ -70,16 +70,16 @@ class Kibo::Config
   #
   # we need namespace-ENVIRONMENT-process<1>
   
-  def kibo
-    self["kibo"] || {}
+  def heroku
+    self["heroku"] || {}
   end
   
   def namespace
-    kibo["namespace"] || E("Please set a namespace in your Kibofile.")
+    heroku["namespace"] || E("Please set the heroku namespace in your Kibofile.")
   end
 
-  def heroku
-    kibo["heroku"] || E("Please set the heroku account email in your Kibofile")
+  def account
+    heroku["account"] || E("Please set the heroku account email in your Kibofile")
   end
 
   def remotes_by_process

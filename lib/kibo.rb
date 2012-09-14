@@ -12,14 +12,22 @@ require_relative "kibo/commandline"
 module Kibo
   extend self
 
-  KIBOFILE_EXAMPLE = <<-EXAMPLE
+  def kibofile_example
+    namespace = File.basename Dir.getwd 
+    account = whoami || "user@domain.com"
+    
+    kibo = <<-EXAMPLE
 # This is an example Kibofile. Use with kibo(1) to configure
 # remote instances.
-kibo:
-  # The email of the heroku account to create app instances on heroku.
-  heroku: kibo@radiospiel.org
-  # You instances will be called 'kiboex-staging-web0', 'kiboex-production-worker0', etc.
-  namespace: kiboex
+heroku:
+  #
+  # The heroku account to create application instances on heroku.
+  account: #{account}
+  #
+  # The namespace setting influences the name of the heroku app instances:
+  # Your instances will be called '#{namespace}-{environment}-{process}{number}',
+  # e.g. '#{namespace}-production-worker0'.
+  namespace: #{namespace}
 defaults:
   web: 1
   worker: 1
@@ -27,6 +35,7 @@ production:
   web: 1
   worker: 2
 EXAMPLE
+  end
 
   def generate
     if File.exists?(CommandLine.kibofile)
@@ -35,7 +44,7 @@ EXAMPLE
     end
     
     File.open(CommandLine.kibofile, "w") do |io|
-      io.write KIBOFILE_EXAMPLE
+      io.write kibofile_example
     end
     C "#{CommandLine.kibofile}: created."
   end
@@ -207,7 +216,7 @@ MSG
   
     confirm! <<-MSG
 I am going to create these instances: #{instances.map(&:inspect).join(", ")}. Is this what you want? Note:
-You are logged in at heroku as #{config.heroku}.
+You are logged in at heroku as #{config.account}.
 MSG
 
     instances.each do |instance|
@@ -223,16 +232,17 @@ MSG
   end
   
   private
+
+  def whoami
+    (Heroku::Auth.read_credentials || []).first
+  end
   
   def verify_heroku_login
-    (Heroku::Auth.read_credentials || []).first.tap do |whoami|
-      msg = if !whoami
-        "Please log into heroku as #{config.heroku.inspect}."
-      elsif whoami != config.heroku
-        "You are currently logged into heroku as #{whoami.inspect}; please log in as #{config.heroku.inspect}."
-      end
-      
-      E "#{msg}\n\n\theroku auth:login" if msg
+    whoami = self.whoami
+    if !whoami
+      E "Please log in ('heroku auth:login') as #{config.account}."
+    elsif whoami != config.account
+      E "You are currently logged in as #{whoami}; please log in ('heroku auth:login') as #{config.account}."
     end
   end
   
