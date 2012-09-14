@@ -63,8 +63,10 @@
     <a href="#SYNOPSIS">SYNOPSIS</a>
     <a href="#DESCRIPTION">DESCRIPTION</a>
     <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#INSTANCE-PROVISIONING">INSTANCE PROVISIONING</a>
     <a href="#GLOBAL-OPTIONS">GLOBAL OPTIONS</a>
     <a href="#Kibofile">Kibofile</a>
+    <a href="#Example-session">Example session</a>
     <a href="#COPYRIGHT">COPYRIGHT</a>
   </div>
 
@@ -85,7 +87,8 @@
 <code>kibo [options] deploy</code><br />
 <code>kibo [options] spinup</code><br />
 <code>kibo [options] spindown</code><br />
-<code>kibo [options] reconfigure</code></p>
+<code>kibo [options] reconfigure</code><br />
+<code>kibo [options] generate</code></p>
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
@@ -93,33 +96,74 @@
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
-<p>Foreman is a manager for Procfile-based applications. Its aim is to
-abstract away the details of the Procfile format, and allow you to either run
-your application directly or export it to some other process management
-format.</p>
+<p>Kibo is a perfect addition to Procfile based deployment on heroku.com.
+While heroku itself provides adequate tools to manage a single application
+on multiple dynos, Kibo adds tools to manage multiple application roles
+on single dynos with automatic instance provisioning.</p>
+
+<p>The application roles are read from the Procfile (see <span class="man-ref">foreman<span class="s">(1)</span></span>).
+The concurrency options - i.e. the number of applications to run
+each role - is read from the Kibofile.</p>
+
+<h2 id="INSTANCE-PROVISIONING">INSTANCE PROVISIONING</h2>
+
+<p>Each instance gets automatically configured using `heroku config. kibo
+sets the environment variables INSTANCE, RAILS_ENV and RACK_ENV to reflect
+instance role and number and runtime environment.</p>
+
+<pre><code>INSTANCE="kibo-staging-web1"
+RAILS_ENV="staging"
+RACK_ENV="staging"
+</code></pre>
 
 <h2 id="GLOBAL-OPTIONS">GLOBAL OPTIONS</h2>
 
 <p>The following options control how kibo is run:</p>
 
 <dl>
-<dt><code>-e</code>, <code>--environment</code></dt><dd><p>Set the target environment.</p></dd>
-<dt><code>-k</code>, <code>--kibofile</code></dt><dd><p>Specify the Kibofile to use.</p></dd>
-<dt><code>-p</code>, <code>--procfile</code></dt><dd><p>Specify an alternate Procfile to load.</p></dd>
+<dt><code>-e</code>, <code>--environment</code></dt><dd><p>Set the target environment. Defaults to "staging"</p></dd>
+<dt><code>-k</code>, <code>--kibofile</code></dt><dd><p>Specify an alternate Kibofile to use.</p></dd>
+<dt><code>-p</code>, <code>--procfile</code></dt><dd><p>Specify an alternate Procfile to use.</p></dd>
 </dl>
 
 
 <h2 id="Kibofile">Kibofile</h2>
 
-<p>An example Kibofile is this:</p>
+<p>A Kibofile scaffold can be generated via <code>kibo generate</code>. The following is an example:</p>
 
-<pre><code>defaults:
-    procfile: Procfile
-    namespace: radiospiel
-staging:
-    twirl: 1
+<pre><code>kibo:
+  # The email of the heroku account to create app instances on heroku.
+  heroku: user@domain.com
+  # You instances will be called 'kiboex-staging-web0', 'kiboex-production-worker0', etc.
+  namespace: kibo
+defaults:
+  procfile: Procfile.other
+  web: 1
+  worker: 1
 production:
-    twirl: 2
+  web: 1
+  worker: 2
+</code></pre>
+
+<p>This defines the roles "web" and "worker", which are running at one resp. two instances in
+the "production" environment.</p>
+
+<h2 id="Example-session">Example session</h2>
+
+<p>This is a session using the example Kibofile from above:</p>
+
+<pre><code># creates the heroku applications "kibo-production-web1",  
+# "kibo-production-worker1", and "kibo-production-worker2". 
+kibo -e production create 
+
+# deploy all applications.
+kibo -e production deploy 
+
+# start all instances
+kibo -e production spinup
+
+# stop all instances
+kibo -e production spindown 
 </code></pre>
 
 <h2 id="COPYRIGHT">COPYRIGHT</h2>
@@ -128,8 +172,8 @@ production:
 
 
   <ol class='man-decor man-foot man foot'>
-    <li class='tl'>Kibo 0.1.2</li>
-    <li class='tc'>August 2012</li>
+    <li class='tl'>Kibo 0.2.0</li>
+    <li class='tc'>September 2012</li>
     <li class='tr'>kibo(1)</li>
   </ol>
 

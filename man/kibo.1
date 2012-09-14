@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "KIBO" "1" "August 2012" "Kibo 0.1.2" "Kibo Manual"
+.TH "KIBO" "1" "September 2012" "Kibo 0.2.0" "Kibo Manual"
 .
 .SH "NAME"
 \fBkibo\fR \- manage heroku applications
@@ -21,41 +21,94 @@
 .br
 \fBkibo [options] reconfigure\fR
 .
+.br
+\fBkibo [options] generate\fR
+.
 .SH "DESCRIPTION"
 kibo is an awesome program that does something very, very important\.
 .
 .SH "DESCRIPTION"
-Foreman is a manager for Procfile\-based applications\. Its aim is to abstract away the details of the Procfile format, and allow you to either run your application directly or export it to some other process management format\.
+Kibo is a perfect addition to Procfile based deployment on heroku\.com\. While heroku itself provides adequate tools to manage a single application on multiple dynos, Kibo adds tools to manage multiple application roles on single dynos with automatic instance provisioning\.
+.
+.P
+The application roles are read from the Procfile (see foreman(1))\. The concurrency options \- i\.e\. the number of applications to run each role \- is read from the Kibofile\.
+.
+.SH "INSTANCE PROVISIONING"
+Each instance gets automatically configured using `heroku config\. kibo sets the environment variables INSTANCE, RAILS_ENV and RACK_ENV to reflect instance role and number and runtime environment\.
+.
+.IP "" 4
+.
+.nf
+
+INSTANCE="kibo\-staging\-web1"
+RAILS_ENV="staging"
+RACK_ENV="staging"
+.
+.fi
+.
+.IP "" 0
 .
 .SH "GLOBAL OPTIONS"
 The following options control how kibo is run:
 .
 .TP
 \fB\-e\fR, \fB\-\-environment\fR
-Set the target environment\.
+Set the target environment\. Defaults to "staging"
 .
 .TP
 \fB\-k\fR, \fB\-\-kibofile\fR
-Specify the Kibofile to use\.
+Specify an alternate Kibofile to use\.
 .
 .TP
 \fB\-p\fR, \fB\-\-procfile\fR
-Specify an alternate Procfile to load\.
+Specify an alternate Procfile to use\.
 .
 .SH "Kibofile"
-An example Kibofile is this:
+A Kibofile scaffold can be generated via \fBkibo generate\fR\. The following is an example:
 .
 .IP "" 4
 .
 .nf
 
+kibo:
+  # The email of the heroku account to create app instances on heroku\.
+  heroku: user@domain\.com
+  # You instances will be called \'kiboex\-staging\-web0\', \'kiboex\-production\-worker0\', etc\.
+  namespace: kibo
 defaults:
-    procfile: Procfile
-    namespace: radiospiel
-staging:
-    twirl: 1
+  procfile: Procfile\.other
+  web: 1
+  worker: 1
 production:
-    twirl: 2
+  web: 1
+  worker: 2
+.
+.fi
+.
+.IP "" 0
+.
+.P
+This defines the roles "web" and "worker", which are running at one resp\. two instances in the "production" environment\.
+.
+.SH "Example session"
+This is a session using the example Kibofile from above:
+.
+.IP "" 4
+.
+.nf
+
+# creates the heroku applications "kibo\-production\-web1",
+# "kibo\-production\-worker1", and "kibo\-production\-worker2"\.
+kibo \-e production create
+
+# deploy all applications\.
+kibo \-e production deploy
+
+# start all instances
+kibo \-e production spinup
+
+# stop all instances
+kibo \-e production spindown
 .
 .fi
 .

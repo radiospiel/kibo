@@ -65,7 +65,11 @@ EOS
     @subcommand = ARGV.shift # get the subcommand
 
     unless SUBCOMMANDS.include?(@subcommand)
-      E(@subcommand ? "Unknown subcommand #{@subcommand.inspect}" : "Missing subcommand")
+      if @subcommand
+        Trollop.die "Unknown subcommand #{@subcommand.inspect}"
+      else 
+        Trollop.die "Missing subcommand"
+      end
     end
 
     # Is there a specific subcommand options configuration?
