@@ -14,8 +14,8 @@ class Gem::Specification
     def source(*args); end
     def group(*args); end
 
-    def gem(name, options = {})
-      @scope.add_dependency(name)
+    def gem(name, *requirements)
+      @scope.add_dependency(name, *requirements)
     end
   end
   

@@ -1,6 +1,6 @@
 source "http://rubygems.org"
 
-gem "heroku"
+gem "heroku", '~> 2.31'
 gem "trollop"
 gem "thor"
 gem 'rake'
