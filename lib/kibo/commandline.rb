@@ -33,7 +33,7 @@ module Kibo::CommandLine
     instance_variable_get "@#{name}"
   end
   
-  SUBCOMMANDS = %w(create deploy spinup spindown reconfigure)
+  SUBCOMMANDS = %w(create deploy spinup spindown reconfigure generate)
   
   def self.parse
     @options = Trollop::options do
@@ -48,6 +48,7 @@ Usage:
   kibo [options] spinup                     ... starts all remote instances
   kibo [options] spindown                   ... stops all remote instances
   kibo [options] reconfigure                ... reconfigure all existing targets
+  kibo [options] generate                   ... generate an example Kibofile
 
 where [options] are:
  
@@ -64,7 +65,7 @@ EOS
     @subcommand = ARGV.shift # get the subcommand
 
     unless SUBCOMMANDS.include?(@subcommand)
-      Trollop::die(@subcommand ? "Unknown subcommand #{@subcommand.inspect}" : "Missing subcommand")
+      E(@subcommand ? "Unknown subcommand #{@subcommand.inspect}" : "Missing subcommand")
     end
 
     # Is there a specific subcommand options configuration?

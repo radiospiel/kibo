@@ -12,6 +12,34 @@ require_relative "kibo/commandline"
 module Kibo
   extend self
 
+  KIBOFILE_EXAMPLE = <<-EXAMPLE
+# This is an example Kibofile. Use with kibo(1) to configure
+# remote instances.
+kibo:
+  # The email of the heroku account to create app instances on heroku.
+  heroku: kibo@radiospiel.org
+  # You instances will be called 'kiboex-staging-web0', 'kiboex-production-worker0', etc.
+  namespace: kiboex
+defaults:
+  web: 1
+  worker: 1
+production:
+  web: 1
+  worker: 2
+EXAMPLE
+
+  def generate
+    if File.exists?(CommandLine.kibofile)
+      E "#{CommandLine.kibofile}: already existing."
+      return
+    end
+    
+    File.open(CommandLine.kibofile, "w") do |io|
+      io.write KIBOFILE_EXAMPLE
+    end
+    C "#{CommandLine.kibofile}: created."
+  end
+
   def config
     @config ||= Config.new(CommandLine.kibofile)
   end

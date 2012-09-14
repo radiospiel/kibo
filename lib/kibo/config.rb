@@ -56,7 +56,7 @@ class Kibo::Config
       @data = DEFAULTS
     end
     
-    @procfile = Kibo::Configfile.new(self["procfile"] || "Procfile")
+    @procfile = Kibo::Configfile.new(self["procfile"])
   end
   
   # processes are defined in the Procfile. The scaling, however, is defined in 
@@ -70,12 +70,16 @@ class Kibo::Config
   #
   # we need namespace-ENVIRONMENT-process<1>
   
+  def kibo
+    self["kibo"] || {}
+  end
+  
   def namespace
-    self["namespace"] || raise("Please define a namespace in your Kibofile.")
+    kibo["namespace"] || E("Please set a namespace in your Kibofile.")
   end
 
   def heroku
-    self["heroku"] || raise("Please defined the heroku entry in your Kibofile")
+    kibo["heroku"] || E("Please set the heroku account email in your Kibofile")
   end
 
   def remotes_by_process
