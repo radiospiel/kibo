@@ -42,18 +42,15 @@ class Kibo::Config
   def initialize(path)
     super()
 
-    @data = Hash.new do |hash, key|
-      W "#{key}: missing setting for #{environment.inspect} environment, using default."
-      hash[key] = DEFAULTS[key]
-    end
-
+    @data = DEFAULTS.dup
+    
     begin
       kibo = YAML.load File.read(path)
+      @data.update(kibo)
       @data.update(kibo["defaults"] || {})
       @data.update(kibo[environment] || {})
     rescue Errno::ENOENT
       W "No such file", path
-      @data = DEFAULTS
     end
     
     @procfile = Kibo::Configfile.new(self["procfile"])
