@@ -1,9 +1,9 @@
 source "http://rubygems.org"
 
-gem "heroku", '~> 2.31'
 gem "trollop"
 gem "thor"
 gem 'rake'
+gem 'netrc'
 
 group :development do
   gem 'ronn'
