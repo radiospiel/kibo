@@ -21,6 +21,14 @@ def E(*args)
   exit 1
 end
 
-def C(*args)
+# Success!
+def S(*args)
   UI.confirm log_message(*args)
+end
+
+def confirm!(msg)
+  puts msg
+  puts "\n\nPress ^C to abort or return to continue."
+  
+  STDIN.readline
 end

@@ -17,6 +17,8 @@ class Kibo::Configfile < Hash
 
         update key => value
       end
+  rescue
+    E "No such file", path
   end
 
   def die(lineno, msg)
@@ -67,14 +69,18 @@ class Kibo::Config
   #
   # we need namespace-ENVIRONMENT-process<1>
   
+  # returns the heroku configuration
   def heroku
     self["heroku"] || {}
   end
   
+  # returns the heroku namespace
   def namespace
     heroku["namespace"] || E("Please set the heroku namespace in your Kibofile.")
   end
 
+  # returns the heroku account email. This is the account that
+  # you should be logged in
   def account
     heroku["account"] || E("Please set the heroku account email in your Kibofile")
   end

@@ -2,41 +2,30 @@ require "trollop"
 require "kibo/version"
 
 module Kibo::CommandLine
-  def self.method_missing(sym, *args, &block)
-    if block_given? || !args.empty?
-      super
-    elsif options.key?(sym)
-      options[sym]
-    elsif (sym.to_s =~ /(.*)\?/) && options.key?($1.to_sym)
-      !! options[$1.to_sym]
-    else
-      super
-    end 
-  end
+  extend self
   
-  def self.options
-    parse unless @options
-    @options
+  def options
+    parse; @options
   end
 
-  def self.subcommand
-    parse unless @options
-    @subcommand
+  def subcommand
+    parse; @subcommand
   end
 
-  def self.args
-    parse unless @options
-    @args
+  def args
+    parse; @args
   end
   
-  def self.parse_and_get(name)
-    parse unless @options
-    instance_variable_get "@#{name}"
-  end
+  private
   
-  SUBCOMMANDS = %w(create deploy spinup spindown reconfigure generate)
-  
-  def self.parse
+  def parse
+    return if @options
+
+    usage = Kibo::Commands.commands.map do |subcommand|
+      next unless description = Kibo::Commands.descriptions[subcommand.to_s]
+      "  kibo [options] %-30s ... %s" % [ subcommand, description ]
+    end.compact.join("\n")
+    
     @options = Trollop::options do
        version "kibo #{Kibo::VERSION} (c) 2012 radiospiel"
         banner <<-EOS
@@ -44,12 +33,7 @@ kibo manages multiple application roles on single heroku dynos.
 
 Usage:
 
-  kibo [options] create                     ... create missing targets
-  kibo [options] deploy                     ... updates all remote instances
-  kibo [options] spinup                     ... starts all remote instances
-  kibo [options] spindown                   ... stops all remote instances
-  kibo [options] reconfigure                ... reconfigure all existing targets
-  kibo [options] generate                   ... generate an example Kibofile
+#{usage}
 
 where [options] are:
  
@@ -60,12 +44,12 @@ EOS
       opt :procfile, "Set Procfile name", :short => 'p', :type => String, :default => "Procfile"
       opt :dry, "Do nothing", :short => 'n'
 
-      stop_on SUBCOMMANDS
+      stop_on Kibo::Commands.commands
     end
 
     @subcommand = ARGV.shift # get the subcommand
 
-    unless SUBCOMMANDS.include?(@subcommand)
+    unless Kibo::Commands.commands.include?(@subcommand)
       if @subcommand
         Trollop.die "Unknown subcommand #{@subcommand.inspect}"
       else 
@@ -74,25 +58,27 @@ EOS
     end
 
     # Is there a specific subcommand options configuration?
-     
-    subcommand_options = 
-      case @subcommand
-      when "spinup" 
-        Trollop::options do
-          opt :force, "Ignore missing targets.", :short => "f"
-        end
-      when "deploy" 
-        Trollop::options do
-          opt :force, "Ignore outstanding changes.", :short => "f"
-        end
-      when "create" 
-        Trollop::options do
-          opt :all, "Create all missing targets.", :short => "a"
-        end
+
+    if proc = Kibo::Commands.options[@subcommand]
+      subcommand_options = Trollop::options do
+        instance_eval &proc
       end
-    
-    @options.update subcommand_options if subcommand_options
+
+      @options.update subcommand_options
+    end
 
     @args = ARGV.dup
+  end
+
+  def method_missing(sym, *args, &block)
+    if block_given? || !args.empty?
+      super
+    elsif options.key?(sym)
+      options[sym]
+    elsif (sym.to_s =~ /(.*)\?/) && options.key?($1.to_sym)
+      !! options[$1.to_sym]
+    else
+      super
+    end 
   end
 end
