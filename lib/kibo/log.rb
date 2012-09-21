@@ -21,6 +21,16 @@ def E(*args)
   exit 1
 end
 
+def B(*args, &block)
+  msg = log_message(*args)
+  W msg
+
+  start = Time.now
+  yield.tap do
+    W "#{msg}: #{(1000 * (Time.now - start)).to_i} msecs."
+  end
+end
+
 # Success!
 def S(*args)
   UI.confirm log_message(*args)
