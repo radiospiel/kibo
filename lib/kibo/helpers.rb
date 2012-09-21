@@ -8,6 +8,10 @@ module Kibo::Helpers
   extend self
 
   extend Heroku
+
+  def sys
+    Kibo::System
+  end
   
   def check_missing_remotes(mode = :warn)
     return if missing_remotes.empty?
@@ -29,7 +33,7 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
   # -- configure remotes ----------------------------------------------
   
   def configure_remote!(remote)
-    heroku "config:set", 
+    sys.heroku "config:set", 
       "RACK_ENV=#{environment}", 
       "RAILS_ENV=#{environment}", 
       "INSTANCE=#{instance_for_remote(remote)}", 
@@ -45,8 +49,8 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
     # name of the of the remote without the namespace part; e.g. the 
     # INSTANCE for the remote named "bountyhill-staging-twirl2" is 
     # "staging-twirl2".
-    instance = remote[config.namespace.length + 1 .. -1]
-    current_instance = heroku "config:get", "INSTANCE", "--app", remote
+    instance = remote[Kibo.config.namespace.length + 1 .. -1]
+    current_instance = sys.heroku "config:get", "INSTANCE", "--app", remote
     return if instance == current_instance
   end
 

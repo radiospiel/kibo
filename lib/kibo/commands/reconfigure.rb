@@ -3,9 +3,9 @@ module Kibo::Commands
 
   # kibo [options] reconfigure                ... reconfigure all existing remotes
   def reconfigure
-    check_missing_remotes :warn
+    h.check_missing_remotes :warn
     
-    configured_remotes.each do |remote| 
+    h.configured_remotes.each do |remote| 
       configure_remote! remote
     end
   end

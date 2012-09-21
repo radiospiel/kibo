@@ -9,29 +9,29 @@ module Kibo::Commands
     else
       h.check_missing_remotes(:error)
     end
-      #
-      # create a deployment branch, if there is none yet.
-      checkout_branch Kibo.environment
+    #
+    # create a deployment branch, if there is none yet.
+    checkout_branch Kibo.environment
+  
+    git "merge", "master"
+    run_commands Kibo.config.deployment["pre"]
+    W "pre commands done"
     
-      git "merge", "master"
-      run_commands Kibo.config.deployment["pre"]
-      W "pre commands done"
-      
-      h.configured_remotes.each do |remote| 
-        deploy_remote! remote
-      end
-      
-      W "Deployment succeeded."
-      run_commands Kibo.config.deployment["post"]
-    rescue StandardError
-      W $!
-      raise
-    ensure
-      unless current_branch == "master"
-        git "reset", "--hard"
-        git "checkout", "master"
-      end
+    h.configured_remotes.each do |remote| 
+      deploy_remote! remote
     end
+    
+    W "Deployment succeeded."
+    run_commands Kibo.config.deployment["post"]
+  rescue StandardError
+    W $!
+    raise
+  ensure
+    unless current_branch == "master"
+      git "reset", "--hard"
+      git "checkout", "master"
+    end
+  end
 
   private
   
@@ -55,7 +55,7 @@ module Kibo::Commands
   end
     
   def deploy_remote!(remote)
-    git "push", remote, "master"
+    git "push", remote, "HEAD:master"
   end
 
   def run_commands(commands)

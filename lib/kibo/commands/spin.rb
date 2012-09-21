@@ -7,7 +7,7 @@ module Kibo::Commands
   subcommand :spindown, "stops all remote instances"
 
   def spinup
-    check_missing_remotes(Kibo.command_line.force? ? :warn : :error)
+    h.check_missing_remotes(Kibo.command_line.force? ? :warn : :error)
     spin Kibo.config.processes
   end
 
@@ -23,7 +23,7 @@ module Kibo::Commands
       
       remotes.each do |remote|
         if number_of_processes > 0
-          configure_remote remote 
+          h.configure_remote remote 
           heroku "ps:scale", "#{name}=1", "--app", remote
           number_of_processes -= 1
         else
