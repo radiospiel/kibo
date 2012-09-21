@@ -9,6 +9,10 @@ module Kibo::Commands
     else
       h.check_missing_remotes(:error)
     end
+
+    run_commands Kibo.config.deployment["first"]
+    W "first commands done"
+
     #
     # create a deployment branch, if there is none yet.
     checkout_branch Kibo.environment
