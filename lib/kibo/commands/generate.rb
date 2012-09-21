@@ -26,11 +26,21 @@ heroku:
   #
   # The heroku account to create application instances on heroku.
   account: #{account}
-  #
-  # The namespace setting influences the name of the heroku app instances:
-  # Your instances will be called '#{namespace}-{environment}-{process}{number}',
-  # e.g. '#{namespace}-production-worker0'.
-  namespace: #{namespace}
+
+  # You instances will be called 'kiboex-staging-web0', 'kiboex-production-worker0', etc.
+  namespace: kiboex
+
+# What to do before and after deployment? These steps are run in the order 
+# defined here, and in an checked out deployment repository.
+deployment:
+  pre:
+    - git rm -rf public/assets || true
+    - rake assets:rebuild
+    - kibo compress --quiet public/assets
+    - git add -f public/assets
+    - git commit -m '[kibo] Updated assets'
+  post:
+    - heroku run rake db:migrate
 defaults:
   web: 1
   worker: 1
@@ -40,3 +50,4 @@ production:
 EXAMPLE
   end
 end
+

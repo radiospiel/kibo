@@ -42,7 +42,6 @@ EOS
       opt :environment, "Set environment", :short => 'e', :type => String, :default => "staging"
       opt :kibofile, "Set Kibofile name", :short => 'k', :type => String, :default => "Kibofile"
       opt :procfile, "Set Procfile name", :short => 'p', :type => String, :default => "Procfile"
-      opt :dry, "Do nothing", :short => 'n'
 
       stop_on Kibo::Commands.commands
     end

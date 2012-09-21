@@ -74,6 +74,11 @@ class Kibo::Config
     self["heroku"] || {}
   end
   
+  # returns deployment specific configuration
+  def deployment
+    self["deployment"] || {}
+  end
+  
   # returns the heroku namespace
   def namespace
     heroku["namespace"] || E("Please set the heroku namespace in your Kibofile.")

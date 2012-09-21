@@ -10,22 +10,42 @@ module Kibo::System
   end
 
   def sys(*args)
-    quiet = args.pop if args.last == :quiet
-    cmd = args.map(&:to_s).join(" ") 
-    W cmd unless quiet
-    
-    # A command is run because it either is "quiet", i.e. is non-obstrusive anyway,
-    # or we are not in a dry. Dry run mode could go with some improvements, though.
-    if quiet || !Kibo.command_line.dry?
-      stdout = Kernel.send "`", "bash -c \"#{cmd}\""
-      stdout.chomp if $?.exitstatus == 0
-    else
-      ""
+    cmd = build_command(*args)
+    result = Kernel.send "`", "bash -c \"#{cmd}\""
+    if command_succeeded?(cmd)
+      result.chomp
     end
   end
 
   def sys!(*args)
-    sys(*args) || E("Command failed: " + args.join(" "))
+    sys(*args) || exit(1)
+  end
+
+  def sh(*args)
+    cmd = build_command(*args)
+    system(cmd)
+    command_succeeded?(cmd)
+  end
+
+  def sh!(*args)
+    sh(*args) || exit(1)
+  end
+
+  private
+  
+  def build_command(*args)
+    quiet = args.pop if args.last == :quiet
+    args[0].sub!(/^kibo\b/, $0)
+    cmd = args.map(&:to_s).join(" ") 
+    W cmd unless quiet
+    cmd
+  end
+
+  def command_succeeded?(cmd)
+    return true if $?.exitstatus == 0
+    
+    UI.error("Command failed: #{cmd}")
+    false
   end
 end
 
