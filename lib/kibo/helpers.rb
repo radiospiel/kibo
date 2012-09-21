@@ -1,7 +1,12 @@
 module Kibo::Helpers
+end
+
+require_relative "./helpers/heroku"
+require_relative "./helpers/info"
+
+module Kibo::Helpers
   extend self
 
-  require_relative "./helpers/heroku"
   extend Heroku
   
   def check_missing_remotes(mode = :warn)
