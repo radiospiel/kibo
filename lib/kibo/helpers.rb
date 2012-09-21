@@ -21,7 +21,8 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
     MSG
   end
 
-
+  # -- configure remotes ----------------------------------------------
+  
   def configure_remote!(remote)
     heroku "config:set", 
       "RACK_ENV=#{environment}", 
@@ -44,11 +45,14 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
     return if instance == current_instance
   end
 
+  # -- which remotes are defined, present and configured --------------
   
   def expected_remotes
-    Kibo.config.processes.inject([]) do |ary, (name, count)|
-      ary.concat 1.upto(count).map { |idx| "#{Kibo.config.namespace}-#{Kibo.environment}-#{name}#{idx}" }
-    end
+    namespace, environment = Kibo.config.namespace, Kibo.environment
+    
+    Kibo.config.processes.map do |name, count|
+      1.upto(count).map { |idx| "#{namespace}-#{environment}-#{name}#{idx}" }
+    end.flatten.sort
   end
 
   def configured_remotes
