@@ -1,5 +1,4 @@
 require "trollop"
-require "kibo/version"
 
 module Kibo::CommandLine
   extend self

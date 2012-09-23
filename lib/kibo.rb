@@ -1,6 +1,7 @@
 module Kibo
 end
 
+require_relative "kibo/version"
 require_relative "kibo/log"
 require_relative "kibo/system"
 require_relative "kibo/config"
