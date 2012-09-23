@@ -55,6 +55,8 @@ class Kibo::Config
       W "No such file", path
     end
     
+    verify_version!
+    
     @procfile = Kibo::Configfile.new(self["procfile"])
   end
   
@@ -63,6 +65,23 @@ class Kibo::Config
   def processes
     @processes ||= procfile.keys.inject({}) do |hash, key|
       hash.update key => (self[key] || 1)
+    end
+  end
+
+  def verify_version!
+    return unless self["version"]
+
+    files_version = self["version"].split(".").map(&:to_i)
+    kibos_version = Kibo::VERSION.split(".").map(&:to_i)
+
+    files_version.zip(kibos_version).each do |files, kibos|
+      next if kibos == files
+      if kibos > files
+        W "The Kibofile requires kibo version #{self["version"]}. You have #{Kibo::VERSION}... this might work."
+        return
+      end
+      
+      E "The Kibofile requires kibo version #{self["version"]}. You have #{Kibo::VERSION}."
     end
   end
 
