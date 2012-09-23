@@ -78,6 +78,11 @@ class Kibo::Config
   def deployment
     self["deployment"] || {}
   end
+
+  # returns source specific configuration
+  def source
+    self["source"] || {}
+  end
   
   # returns the heroku namespace
   def namespace
