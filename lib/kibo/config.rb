@@ -10,6 +10,7 @@ class Kibo::Configfile < Hash
       split("\n").
       each_with_index do |line, lineno|
         next if line =~ /^\s*#/
+        next if line =~ /^\s*$/
         die(lineno, "Can't parse line: #{line.inspect}") unless line =~ /\s*([a-z]+):\s*(.*)$/
         key, value = $1, $2.gsub(/\s+$/, "")
         
@@ -98,6 +99,10 @@ class Kibo::Config
     self["deployment"] || {}
   end
 
+  def collaborations
+    self["collaborations"] || {}
+  end
+  
   # returns source specific configuration
   def source
     self["source"] || {}
