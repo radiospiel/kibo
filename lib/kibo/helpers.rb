@@ -21,6 +21,8 @@ module Kibo::Helpers
       return
     end
 
+    environment = Kibo.environment
+    
     E <<-MSG
 Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
 
