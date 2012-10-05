@@ -35,7 +35,8 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
   # -- configure remotes ----------------------------------------------
   
   def configure_remote!(remote)
-    sys.heroku "config:set", 
+    environment = Kibo.environment
+      sys.heroku "config:set", 
       "RACK_ENV=#{environment}", 
       "RAILS_ENV=#{environment}", 
       "INSTANCE=#{instance_for_remote(remote)}", 
@@ -43,7 +44,7 @@ Missing remote(s): #{missing_remotes.map(&:inspect).join(", ")}. Run
   end
   
   def instance_for_remote(remote)
-    remote[config.namespace.length + 1 .. -1]
+    remote[Kibo.config.namespace.length + 1 .. -1]
   end
   
   def configure_remote(remote)

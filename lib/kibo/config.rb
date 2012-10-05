@@ -122,15 +122,13 @@ class Kibo::Config
   def remotes_by_process
     remotes = Kibo.git("remote", :quiet).split("\n")
     
-    @remotes_by_process ||= remotes.group_by do |remote| 
-      case remote
-      when /^#{namespace}-#{environment}-(\w+)(\d+)/
-        $1
-      when /^#{namespace}-#{environment}-/ 
-        W "#{remote.inspect}: Ignoring target..."
-        nil
-      else
+    @remotes_by_process ||= begin
+      r = processes.map do |process, count| 
+        prefix = "#{namespace}-#{environment}-#{process}"
+        remotes = 1.upto(count).map { |idx| "#{prefix}#{idx}" }
+        [ process, remotes ]
       end
-    end.tap { |hash| hash.delete(nil) }
+      Hash[r]
+    end
   end
 end

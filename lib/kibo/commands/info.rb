@@ -21,4 +21,17 @@ module Kibo::Commands
       info.line "missing", h.missing_remotes
     end
   end
+
+  subcommand :logs, "Show log files for current instances"
+  def logs
+    h.configured_remotes.each do |remote|
+      fork do
+        cmd = "heroku logs --tail --app #{remote} | sed s/^/\\\\[#{remote}\\\\]\\ /"
+        W cmd
+        exec(cmd)
+      end
+    end
+    
+    Process.waitall
+  end
 end

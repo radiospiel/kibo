@@ -6,7 +6,7 @@ module Kibo::Commands
     h.check_missing_remotes :warn
     
     h.configured_remotes.each do |remote| 
-      configure_remote! remote
+      h.configure_remote! remote
     end
   end
 end
