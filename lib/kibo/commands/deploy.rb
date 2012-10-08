@@ -1,15 +1,7 @@
 module Kibo::Commands
-  subcommand :deploy, "updates all remote instances" do
-    opt :force, "Ignore outstanding changes.", :short => "f"
-  end
+  subcommand :deploy, "updates all remote instances"
 
   def deploy
-    if Kibo.command_line.force?
-      h.check_missing_remotes(:warn)
-    else
-      h.check_missing_remotes(:error)
-    end
-
     ENV["ENVIRONMENT"] = Kibo.environment
      
     #
@@ -20,9 +12,9 @@ module Kibo::Commands
       in_branch "kibo.#{Kibo.environment}" do
         git "merge", "master"
 
-        with_commands :deployment do
-          h.configured_remotes.each do |remote| 
-            deploy_remote! remote
+        with_commands :arena do
+          Kibo.config.instances.each do |instance| 
+            git "push", "--force", instance, "HEAD:master"
           end
         end
       end
@@ -34,6 +26,10 @@ module Kibo::Commands
 
   private
 
+  # Run the commands under "<key>.pre", 
+  # then yield the block, 
+  # then run the commands under "<key>.success", if the block was successful,
+  # then run the commands under "<key>.final".
   def with_commands(sym, &block)
     commands_hash = Kibo.config.send(sym) || {}
     
@@ -42,7 +38,7 @@ module Kibo::Commands
 
       W "Running #{sym}.#{key} commands"
       [ *commands ].each do |command|
-        Kibo::System.sh! command
+        Kibo::System.sys! command
       end
     }
 
@@ -52,7 +48,7 @@ module Kibo::Commands
 
     run.call("success")
   ensure
-    run.call("final")
+    run.call("final") if run
   end
   
   #
@@ -83,9 +79,5 @@ module Kibo::Commands
   def branches
     branches = `git branch`
     ("\n" + branches).split(/\n[\* ]+/).reject(&:empty?)
-  end
-    
-  def deploy_remote!(remote)
-    git "push", "--force", remote, "HEAD:master"
   end
 end

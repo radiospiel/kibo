@@ -13,12 +13,15 @@ def D(*args)
 end
 
 def W(*args)
-  UI.warn log_message(*args)
+  UI.warn log_message(*args).to_s
+end
+
+class FatalError < RuntimeError
 end
 
 def E(*args)
   UI.error log_message(*args)
-  exit 1
+  raise FatalError
 end
 
 def B(*args, &block)

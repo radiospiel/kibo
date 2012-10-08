@@ -1,134 +1,115 @@
 require "yaml"
+require "mash"
 
-class Kibo::Configfile < Hash
-  attr :path
+class Kibo::Config < Mash
+  DEFAULTS = {
+    "heroku"          => {
+      "mode" => "freemium"
+    },
+    "deployment"      => {},
+    "collaborations"  => {},
+    "source"          => {},
+    "collaborators"   => []
+  }
+
+  attr :environment, :kibofile
   
-  def initialize(path)
-    @path = path
+  def initialize(kibofile, environment)
+    @kibofile, @environment = kibofile, environment
+    @kibofile = File.expand_path @kibofile
     
-    File.read(path).
-      split("\n").
-      each_with_index do |line, lineno|
-        next if line =~ /^\s*#/
-        next if line =~ /^\s*$/
-        die(lineno, "Can't parse line: #{line.inspect}") unless line =~ /\s*([a-z]+):\s*(.*)$/
-        key, value = $1, $2.gsub(/\s+$/, "")
-        
-        die(lineno, "Multiple entries for #{key.inspect}") if key?(key)
+    kibo = begin
+      YAML.load File.read(kibofile)
+    rescue Errno::ENOENT
+      W "In", Dir.getwd
+      E "No such file", @kibofile
+    end
 
-        update key => value
-      end
-  rescue
-    E "No such file", path
+    build_config(kibo)
+    verify_config
+  end
+  
+  def processes
+    return unless processes = super
+    processes.reject { |k,v| v.to_s.to_i <= 0 } 
   end
 
-  def die(lineno, msg)
-    E "#{path}:#{lineno}", msg
+  def freemium?
+    heroku.mode == "freemium"
+  end
+  
+  private
+  
+  def build_config(kibo)
+    config = DEFAULTS.dup
+    
+    [ kibo, kibo["defaults"], kibo[environment] ].each do |hash|
+      next unless hash
+      config = config.deep_merge(hash)
+    end
+    
+    self.update config
+  end
+  
+  def verify_config
+    Kibo::Config.verify_version!(self.version)
+    
+    # verify required entries
+    E("#{@kibofile}: Please set the heroku namespace.") unless heroku.namespace?
+    E("#{@kibofile}: Please set the heroku account email") unless heroku.account?
+    E("#{@kibofile}: Missing 'processes' settings") unless self.processes.is_a?(Hash)
+  end
+  
+  def self.verify_version!(version)
+    return unless version
+
+    kibofile_version = version.split(".").map(&:to_i)
+    kibo_version = Kibo::VERSION.split(".").map(&:to_i)
+
+    return if kibo_version >= kibofile_version
+
+    E "The Kibofile requires kibo version #{version}. You have #{Kibo::VERSION}."
+  end
+end
+
+class Kibo::Instance < String
+  attr :count, :role
+  
+  def initialize(role, count)
+    @role, @count = role, count
+    super "#{Kibo.namespace}-#{Kibo.environment}-#{role}"
+  end
+
+  def addons
+    []
+  end
+  
+  class Freemium < self
+    def initialize(role, number)
+      super role, 1
+      @number = number
+    
+      concat "#{@number}"
+    end
   end
 end
 
 class Kibo::Config
-  attr :procfile
 
-  DEFAULTS = {
-    "procfile" => "Procfile"
-  }
-  
-  def [](key)
-    @data[key]
-  end
-  
-  def environment
-    Kibo.environment
-  end
-  
-  def initialize(path)
-    super()
-
-    @data = DEFAULTS.dup
-    
-    begin
-      kibo = YAML.load File.read(path)
-      @data.update(kibo)
-      @data.update(kibo["defaults"] || {})
-      @data.update(kibo[environment] || {})
-    rescue Errno::ENOENT
-      W "No such file", path
-    end
-    
-    verify_version!
-    
-    @procfile = Kibo::Configfile.new(self["procfile"])
-  end
-  
-  # processes are defined in the Procfile. The scaling, however, is defined in 
-  # the Kibofile.
-  def processes
-    @processes ||= procfile.keys.inject({}) do |hash, key|
-      hash.update key => (self[key] || 1)
-    end
-  end
-
-  def verify_version!
-    return unless self["version"]
-
-    files_version = self["version"].split(".").map(&:to_i)
-    kibos_version = Kibo::VERSION.split(".").map(&:to_i)
-
-    files_version.zip(kibos_version).each do |files, kibos|
-      next if kibos == files
-      if kibos > files
-        W "The Kibofile requires kibo version #{self["version"]}. You have #{Kibo::VERSION}... this might work."
-        return
+  # return an array of instances.
+  def instances
+    instances = if Kibo.config.freemium?
+      Kibo.config.processes.map do |process, count|
+        1.upto(count).map { |idx| 
+          Kibo::Instance::Freemium.new process, idx 
+        }
+      end.flatten
+    else
+      Kibo.config.processes.map do |process, count|
+        Kibo::Instance.new process, count
       end
-      
-      E "The Kibofile requires kibo version #{self["version"]}. You have #{Kibo::VERSION}."
     end
-  end
 
-  #
-  # we need namespace-ENVIRONMENT-process<1>
-  
-  # returns the heroku configuration
-  def heroku
-    self["heroku"] || {}
-  end
-  
-  # returns deployment specific configuration
-  def deployment
-    self["deployment"] || {}
-  end
-
-  def collaborations
-    self["collaborations"] || {}
-  end
-  
-  # returns source specific configuration
-  def source
-    self["source"] || {}
-  end
-  
-  # returns the heroku namespace
-  def namespace
-    heroku["namespace"] || E("Please set the heroku namespace in your Kibofile.")
-  end
-
-  # returns the heroku account email. This is the account that
-  # you should be logged in
-  def account
-    heroku["account"] || E("Please set the heroku account email in your Kibofile")
-  end
-
-  def remotes_by_process
-    remotes = Kibo.git("remote", :quiet).split("\n")
-    
-    @remotes_by_process ||= begin
-      r = processes.map do |process, count| 
-        prefix = "#{namespace}-#{environment}-#{process}"
-        remotes = 1.upto(count).map { |idx| "#{prefix}#{idx}" }
-        [ process, remotes ]
-      end
-      Hash[r]
-    end
+    instances.sort_by(&:to_s)
   end
 end

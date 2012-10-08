@@ -1,3 +1,5 @@
+require_relative "../helpers/info"
+
 module Kibo::Commands
   subcommand :info, "show information about the current settings"
 
@@ -5,33 +7,34 @@ module Kibo::Commands
     Kibo::Helpers::Info.print do |info|
       info.head "general"
       info.line "environment", Kibo.environment
-
+      info.line "namespace", Kibo.namespace
+      
       info.head "heroku"
-      info.line "current account", h.whoami
-      info.line "expected account", Kibo.config.account
+      info.line "current account", Kibo::Heroku.whoami
+      info.line "expected account", Kibo.config.heroku.account
 
       info.head "processes"      
+      info.line "mode", Kibo.config.heroku.mode
       Kibo.config.processes.each do |key, value|
         info.line key, value
       end
 
-      info.head "remotes"
-      info.line "remotes", h.expected_remotes
-      info.line "configured", h.configured_remotes
-      info.line "missing", h.missing_remotes
+      # info.head "remotes"
+      # 
+      # info.line "expected", Kibo.expected_remotes
+      # info.line "configured", Kibo.configured_remotes
+      # info.line "missing", Kibo.missing_remotes
+
+      info.head "instances"
+      
+      info.line "expected", Kibo.config.instances
+      info.line "configured", configured_instances
     end
   end
 
-  subcommand :logs, "Show log files for current instances"
-  def logs
-    h.configured_remotes.each do |remote|
-      fork do
-        cmd = "heroku logs --tail --app #{remote} | sed s/^/\\\\[#{remote}\\\\]\\ /"
-        W cmd
-        exec(cmd)
-      end
-    end
-    
-    Process.waitall
+  def configured_instances
+    sys("git remote").split("\n").select { |line|
+      line =~ /^#{Kibo.namespace}-/
+    }
   end
 end

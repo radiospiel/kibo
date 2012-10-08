@@ -12,9 +12,11 @@
 # The heroku gem is licensed under the terms of the MIT license,
 # see the file License.MIT.
 #
-# The heroku has been created by Adam Wiggins, and is currently maintained
+# The heroku gem has been created by Adam Wiggins, and is currently maintained
 # by Wesley Beary.
-module Kibo::Helpers::Heroku
+module Kibo::Heroku
+  extend self
+  
   require "netrc"
 
   def whoami
@@ -71,5 +73,17 @@ module Kibo::Helpers::Heroku
         netrc["api.#{host}"]
       end
     end
+  end
+
+  # --- helpers for kibo ----------------------------------------------
+
+  public
+  
+  # returns names of all apps for the current user on heroku
+  def apps
+    @apps ||= Kibo::System.heroku("apps").
+      split(/\n/).
+      reject { |line| line.empty? || line =~ /=== / }.
+      map { |line| line.split(" ").first }
   end
 end

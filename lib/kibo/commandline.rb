@@ -39,8 +39,7 @@ where [options] are:
 EOS
 
       opt :environment, "Set environment", :short => 'e', :type => String, :default => "staging"
-      opt :kibofile, "Set Kibofile name", :short => 'k', :type => String, :default => "Kibofile"
-      opt :procfile, "Set Procfile name", :short => 'p', :type => String, :default => "Procfile"
+      opt :config, "Set Kibofile name", :short => 'c', :type => String, :default => "Kibofile"
 
       stop_on Kibo::Commands.commands
     end

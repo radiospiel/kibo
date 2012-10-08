@@ -1,39 +1,22 @@
 # --spin up/spin down remotes
 module Kibo::Commands
-  subcommand :spinup, "starts all remote instances" do
-    opt :force, "Ignore missing targets.", :short => "f"
-  end
-
+  subcommand :spinup, "starts all remote instances"
   subcommand :spindown, "stops all remote instances"
 
   def spinup
-    h.check_missing_remotes(Kibo.command_line.force? ? :warn : :error)
-    spin Kibo.config.processes
+    spin :up
   end
 
   def spindown
-    spin({})
+    spin :down
   end
 
   private
   
-  def spin(processes)
-    Kibo.config.remotes_by_process.each do |name, remotes|
-      number_of_processes = processes[name] || 0
-      
-      remotes.each do |remote|
-        if number_of_processes > 0
-          h.configure_remote remote 
-          heroku "ps:scale", "#{name}=1", "--app", remote
-          number_of_processes -= 1
-        else
-          heroku "ps:scale", "#{name}=0", "--app", remote
-        end
-      end
-      
-      if number_of_processes > 0
-        W "Missing #{name} remote(s)", number_of_processes
-      end
+  def spin(mode)
+    Kibo.config.instances.each do |instance|
+      count = mode == :up ? instance.count : 0
+      heroku "ps:scale", "#{instance.role}=#{count}", "--app", instance
     end
   end
 end

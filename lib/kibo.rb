@@ -1,6 +1,7 @@
 module Kibo
 end
 
+require_relative "kibo/ext/ruby_ext.rb"
 require_relative "kibo/version"
 require_relative "kibo/log"
 require_relative "kibo/system"
@@ -12,22 +13,24 @@ module Kibo
   extend self
   
   def config
-    @config ||= Config.new(kibofile)
+    @config ||= Config.new(CommandLine.config, CommandLine.environment)
   end
 
   def environment
     CommandLine.environment
   end
   
+  def namespace
+    Kibo.config.heroku.namespace
+  end
+  
   def run
     Commands.send CommandLine.subcommand
+  rescue FatalError
+    exit 1
   end
-
-  def command_line
-    CommandLine
-  end
-
-  def kibofile
-    command_line.kibofile
+  
+  def binary
+    File.join(File.dirname(__FILE__), "..", "bin", "kibo")
   end
 end

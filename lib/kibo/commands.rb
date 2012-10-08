@@ -1,6 +1,3 @@
-require_relative "helpers"
-require_relative "system"
-
 module Kibo::Commands
   extend self
 
@@ -19,24 +16,6 @@ module Kibo::Commands
   
   def self.commands
     public_instance_methods.map(&:to_s)
-  end
-  
-  private 
-  
-  def h
-    Kibo::Helpers
-  end
-
-  def sys
-    Kibo::System
-  end
-
-  def git(*args)
-    sys.git *args
-  end
-
-  def heroku(*args)
-    sys.heroku *args
   end
 end
 

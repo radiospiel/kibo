@@ -4,6 +4,9 @@ gem "trollop"
 gem "thor"
 gem 'rake'
 gem 'netrc'
+gem 'mash'
+gem 'foreman'
+gem 'heroku'
 
 group :development do
   gem 'ronn'
@@ -12,5 +15,9 @@ group :development do
   gem 'rspec',  '~> 2.0'
   gem "simplecov", :require => false
   gem 'timecop'
+  gem 'ruby-debug19'
+  gem 'test-unit'
+  gem 'mocha'
+  gem 'awesome_print'
   # gem 'yard'
 end

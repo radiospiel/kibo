@@ -1,3 +1,5 @@
+module Kibo::Helpers; end
+
 class Kibo::Helpers::Info < Array
   def self.print(out = STDOUT, &block)
     out.puts build(&block).to_s
