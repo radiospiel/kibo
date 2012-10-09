@@ -37,6 +37,10 @@ class Kibo::Config < Mash
     heroku.mode == "freemium"
   end
   
+  def namespace
+    heroku.namespace
+  end
+  
   private
   
   def build_config(kibo)
@@ -74,9 +78,10 @@ end
 class Kibo::Instance < String
   attr :count, :role
   
-  def initialize(role, count)
+  def initialize(config, role, count)
     @role, @count = role, count
-    super "#{Kibo.namespace}-#{Kibo.environment}-#{role}"
+    
+    super "#{config.namespace}-#{config.environment}-#{role}"
   end
 
   def addons
@@ -84,8 +89,8 @@ class Kibo::Instance < String
   end
   
   class Freemium < self
-    def initialize(role, number)
-      super role, 1
+    def initialize(config, role, number)
+      super config, role, 1
       @number = number
     
       concat "#{@number}"
@@ -97,15 +102,15 @@ class Kibo::Config
 
   # return an array of instances.
   def instances
-    instances = if Kibo.config.freemium?
-      Kibo.config.processes.map do |process, count|
+    instances = if freemium?
+      processes.map do |process, count|
         1.upto(count).map { |idx| 
-          Kibo::Instance::Freemium.new process, idx 
+          Kibo::Instance::Freemium.new self, process, idx 
         }
       end.flatten
     else
-      Kibo.config.processes.map do |process, count|
-        Kibo::Instance.new process, count
+      processes.map do |process, count|
+        Kibo::Instance.new self, process, count
       end
     end
 

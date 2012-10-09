@@ -17,7 +17,7 @@ module Kibo
   end
 
   def environment
-    CommandLine.environment
+    Kibo.config.environment
   end
   
   def namespace

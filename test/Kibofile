@@ -1,0 +1,33 @@
+# This is an example Kibofile. Use with kibo(1) to configure
+# remote instances.
+heroku:
+  # The email of the heroku account to create app instances on heroku.
+  account: kibo@kibo.local
+
+  # Namespace to use when generating names for git remotes and heroku app
+  # instances. With a "kibo" namespace our instances will be called 
+  # 'kibo-staging-clerk1', 'kibo-production-twirl1', etc.
+  namespace: kibo
+
+# How many instances to spin up?
+defaults:
+  processes:
+    stats: 0
+    clerk: 1
+    twirl: 1
+
+# Live mode will have 1 clerk and 3 twirls.
+live:
+  heroku:
+    mode: pro
+  processes:
+    clerk: 1
+    twirl: 3
+  
+source:
+  pre:
+    - rake bountybase:release 
+  success:
+    - git tag $ENVIRONMENT-$(date "+%Y.%m.%d-%H.%M")
+
+#arena:
