@@ -21,8 +21,7 @@ class Kibo::Config < Mash
     kibo = begin
       YAML.load File.read(kibofile)
     rescue Errno::ENOENT
-      W "In", Dir.getwd
-      E "No such file", @kibofile
+      E "No such file", File.expand_path(@kibofile)
     end
 
     build_config(kibo)

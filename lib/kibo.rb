@@ -26,7 +26,8 @@ module Kibo
   
   def run
     Commands.send CommandLine.subcommand
-  rescue FatalError
+  rescue RuntimeError
+    UI.error $!.to_s 
     exit 1
   end
   

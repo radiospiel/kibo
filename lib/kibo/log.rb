@@ -20,8 +20,7 @@ class FatalError < RuntimeError
 end
 
 def E(*args)
-  UI.error log_message(*args)
-  raise FatalError
+  raise FatalError, log_message(*args)
 end
 
 def B(*args, &block)
