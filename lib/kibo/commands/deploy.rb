@@ -56,6 +56,8 @@ module Kibo::Commands
   def in_branch(name, &block)
     previous_branch = current_branch
 
+    git "stash"
+    
     if name != previous_branch
       git "branch", name unless branches.include?(name)
       git "checkout", name
@@ -70,6 +72,8 @@ module Kibo::Commands
       git "reset", "--hard"
       git "checkout", previous_branch
     end
+    
+    git "stash", "pop"
   end
 
   def current_branch
