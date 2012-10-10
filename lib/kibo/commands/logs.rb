@@ -20,8 +20,8 @@ module Kibo::Commands
 
     $stdout.sync = true
     
-    heroku = Heroku::Auth.client
-    heroku.read_logs(instance, [ "tail=1" ]) do |chunk|
+    client = Heroku::Auth.client
+    client.read_logs(instance, [ "tail=1" ]) do |chunk|
       chunk.split("\n").each do |line|
         $stdout.puts line.split(": ", 2)[1]
       end

@@ -16,7 +16,7 @@ module Kibo::Commands
   def spin(mode)
     Kibo.config.instances.each do |instance|
       count = mode == :up ? instance.count : 0
-      heroku "ps:scale", "#{instance.role}=#{count}", "--app", instance
+      heroku! "ps:scale", "#{instance.role}=#{count}", "--app", instance
     end
   end
 end

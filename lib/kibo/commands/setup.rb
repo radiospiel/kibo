@@ -45,7 +45,7 @@ module Kibo::Commands
     if Kibo::Heroku.apps.include?(instance)
       git :remote, :add, instance, heroku_url
     else
-      heroku "apps:create", instance, "--remote", instance
+      heroku! "apps:create", instance, "--remote", instance
     end
     
     true
@@ -53,7 +53,7 @@ module Kibo::Commands
   
   def share_instance(instance)
     Kibo.config.sharing.each do |email|
-      heroku "sharing:add", email, "--app", instance
+      heroku! "sharing:add", email, "--app", instance
     end
   end
   
@@ -74,12 +74,12 @@ module Kibo::Commands
 
     missing = instance_addons - existing_instance_addons
     missing.each do |addon|
-      heroku "addons:add", addon, "--app", instance
+      heroku! "addons:add", addon, "--app", instance
     end
   end
 
   def configure_instance(instance)
-    heroku "config:set", "INSTANCE=#{instance.instance_name}", "--app", instance
+    heroku! "config:set", "INSTANCE=#{instance.instance_name}", "--app", instance
   end
 
   def verify_heroku_login

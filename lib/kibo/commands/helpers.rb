@@ -8,8 +8,9 @@ module Kibo::Commands
   
   extend Forwardable
   
-  delegate [:git, :git?, :heroku, :sys] => Kibo::System
+  delegate [:git, :git?, :sys] => Kibo::System
 
-  # -- which remotes are defined, present and configured --------------
-
+  def heroku!(*args)
+    Kibo::System.heroku *args
+  end
 end
