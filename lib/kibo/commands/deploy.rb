@@ -7,14 +7,15 @@ module Kibo::Commands
     #
     # Run source commands
     with_commands :source do
+      with_stashed_changes do
+        # create a deployment branch, if there is none yet.
+        in_branch "kibo.#{Kibo.environment}" do
+          git "merge", "master"
 
-      # create a deployment branch, if there is none yet.
-      in_branch "kibo.#{Kibo.environment}" do
-        git "merge", "master"
-
-        with_commands :arena do
-          Kibo.config.instances.each do |instance| 
-            git "push", "--force", instance, "HEAD:master"
+          with_commands :arena do
+            Kibo.config.instances.each do |instance| 
+              git "push", "--force", instance, "HEAD:master"
+            end
           end
         end
       end
@@ -51,13 +52,25 @@ module Kibo::Commands
     run.call("final") if run
   end
   
+  def dirty?
+    return false if git? "diff-index", "--quiet", "HEAD", :quiet
+
+    true
+  end
+  
+  def with_stashed_changes(&block)
+    is_clean = git? "diff-index", "--quiet", "HEAD", :quiet
+    git "stash" unless is_clean
+    yield
+  ensure
+    git "stash", "pop" unless is_clean
+  end
+  
   #
   # checkout the branch +name+, create it if necessary.
   def in_branch(name, &block)
     previous_branch = current_branch
 
-    git "stash"
-    
     if name != previous_branch
       git "branch", name unless branches.include?(name)
       git "checkout", name
@@ -72,8 +85,6 @@ module Kibo::Commands
       git "reset", "--hard"
       git "checkout", previous_branch
     end
-    
-    git "stash", "pop"
   end
 
   def current_branch
