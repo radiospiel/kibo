@@ -1,3 +1,5 @@
+__END__
+
 module Kibo::Commands
   subcommand :generate, "generate an example Kibofile"
 
