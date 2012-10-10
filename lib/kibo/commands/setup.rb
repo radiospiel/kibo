@@ -5,7 +5,7 @@ require_relative "../heroku"
 
 module Kibo::Commands
   subcommand :setup, "Setup and configure application instances" do
-    opt :force, "Reconfigure existing instances, too.", :short => "f"
+    opt :force, "Reconfigure existing instances.", :short => "f"
   end
   
   subcommand :reconfigure, "Reconfigure application instances"
@@ -18,10 +18,11 @@ module Kibo::Commands
     Kibo.config.instances.each do |instance|
       next unless create_instance(instance) || Kibo::CommandLine.force?
 
-      # The following only when forced (--force) to do so or when
-      # a new instance has been created.
-      collaborate_instance instance
+      # The following only when forced (--force) to do so 
+      # or when a new instance has been created.
+
       provide_instance instance
+      share_instance instance
       configure_instance instance
     end
   end
@@ -30,7 +31,8 @@ module Kibo::Commands
     # create all apps on heroku or make sure that they
     # exist as remotes in the local git configuration.
     Kibo.config.instances.each do |instance|
-      # provide_instance instance
+      provide_instance instance
+      share_instance instance
       configure_instance instance
     end
   end
@@ -49,15 +51,30 @@ module Kibo::Commands
     true
   end
   
-  def collaborate_instance(instance)
-    Kibo.config.collaborators.each do |email|
+  def share_instance(instance)
+    Kibo.config.sharing.each do |email|
       heroku "sharing:add", email, "--app", instance
     end
   end
   
   def provide_instance(instance)
-    instance.addons.each do |addon|
-      heroku "addons:add", addon
+    partial_instance_name = instance.split("-").last # e.g. "web1"
+
+    return unless instance_addons = Kibo.config.addons[partial_instance_name]
+
+    existing_instance_addons = 
+      heroku("addons", "--app", instance, :quiet).
+      split("\n").
+      map do |line| 
+        next if line =~ /^=== /
+        line.split(/\s+/).first
+      end.compact
+
+    W "[#{instance}] addons", *existing_instance_addons
+
+    missing = instance_addons - existing_instance_addons
+    missing.each do |addon|
+      heroku "addons:add", addon, "--app", instance
     end
   end
 

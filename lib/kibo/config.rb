@@ -9,7 +9,8 @@ class Kibo::Config < Mash
     "deployment"      => {},
     "collaborations"  => {},
     "source"          => {},
-    "collaborators"   => []
+    "sharing"         => [],
+    "addons"          => {}
   }
 
   attr :environment, :kibofile
