@@ -3,7 +3,12 @@ module Kibo::Commands
 
   def deploy
     ENV["ENVIRONMENT"] = Kibo.environment
-     
+
+    missing_instances = Kibo.config.instances - configured_instances
+    unless missing_instances.empty?
+      E "Use 'kibo setup #{Kibo.environment}' to set up these missing instances", *missing_instances
+    end
+    
     #
     # Run source commands
     with_commands :source do
