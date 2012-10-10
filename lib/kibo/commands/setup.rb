@@ -7,19 +7,30 @@ module Kibo::Commands
   subcommand :setup, "Setup and configure application instances" do
     opt :force, "Reconfigure existing instances, too.", :short => "f"
   end
+  
+  subcommand :reconfigure, "Reconfigure application instances"
 
   def setup
     verify_heroku_login
     
     # create all apps on heroku or make sure that they
     # exist as remotes in the local git configuration.
-    instances.each do |instance|
+    Kibo.config.instances.each do |instance|
       next unless create_instance(instance) || Kibo::CommandLine.force?
 
       # The following only when forced (--force) to do so or when
       # a new instance has been created.
       collaborate_instance instance
       provide_instance instance
+      configure_instance instance
+    end
+  end
+  
+  def reconfigure
+    # create all apps on heroku or make sure that they
+    # exist as remotes in the local git configuration.
+    Kibo.config.instances.each do |instance|
+      # provide_instance instance
       configure_instance instance
     end
   end
@@ -51,7 +62,7 @@ module Kibo::Commands
   end
 
   def configure_instance(instance)
-    heroku "config:set", "INSTANCE=#{instance}"
+    heroku "config:set", "INSTANCE=#{instance.instance_name}", "--app", instance
   end
 
   def verify_heroku_login
