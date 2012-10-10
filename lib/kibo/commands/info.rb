@@ -33,8 +33,8 @@ module Kibo::Commands
   end
 
   def configured_instances
-    sys("git remote").split("\n").select { |line|
-      line =~ /^#{Kibo.namespace}-/
+    sys("git remote", :quiet).split("\n").select { |line|
+      line =~ /^#{Kibo.namespace}-#{Kibo.environment}/
     }
   end
 end
