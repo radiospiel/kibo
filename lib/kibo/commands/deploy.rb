@@ -25,6 +25,8 @@ module Kibo::Commands
         end
       end
     end
+  rescue FatalError
+    raise
   rescue StandardError
     W $!
     raise
