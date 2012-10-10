@@ -10,19 +10,33 @@ module Kibo::CommandLine
   def subcommand
     parse; @subcommand
   end
-
+  
+  def environment
+    parse; @environment
+  end
+  
   def args
     parse; @args
   end
   
   private
   
+  COMMANDS_WO_ENVIRONMENT = %w(generate log compress) 
+  
   def parse
     return if @options
 
-    usage = Kibo::Commands.commands.map do |subcommand|
-      next unless description = Kibo::Commands.descriptions[subcommand.to_s]
-      "  kibo [options] %-30s ... %s" % [ subcommand, description ]
+    commands, descriptions = Kibo::Commands.commands, Kibo::Commands.descriptions
+    
+    commands = commands.map(&:to_s) & descriptions.keys
+    ll_commands, hl_commands = commands.partition { |a| COMMANDS_WO_ENVIRONMENT.include?(a) }
+    
+    hl_usage = hl_commands.map do |subcommand|
+      "  kibo [options] %-33s ... %s" % [ "#{subcommand} <environment>", descriptions[subcommand] ]
+    end.compact.join("\n")
+    
+    ll_usage = ll_commands.map do |subcommand|
+      "  kibo [options] %-33s ... %s" % [ subcommand, descriptions[subcommand] ]
     end.compact.join("\n")
     
     @options = Trollop::options do
@@ -32,13 +46,16 @@ kibo manages multiple application roles on single heroku dynos.
 
 Usage:
 
-#{usage}
+#{hl_usage}
+
+More commands:
+
+#{ll_usage}
 
 where [options] are:
  
 EOS
 
-      opt :environment, "Set environment", :short => 'e', :type => String, :default => "staging"
       opt :config, "Set Kibofile name", :short => 'c', :type => String, :default => "Kibofile"
 
       stop_on Kibo::Commands.commands
@@ -54,6 +71,15 @@ EOS
       end
     end
 
+    # Does this subcommand needs the environment setting? 
+    # This includes all subcommands except generate and log
+    unless COMMANDS_WO_ENVIRONMENT.include?(@subcommands)
+      @environment = ARGV.shift || begin
+        W "You should supply the <environment> argument. Using default 'staging'"
+        "staging"
+      end
+    end
+    
     # Is there a specific subcommand options configuration?
 
     if proc = Kibo::Commands.options[@subcommand]
