@@ -9,6 +9,10 @@ module Kibo::System
     sys! "git", *args
   end
 
+  def git?(*args)
+    sys "git", *args
+  end
+
   def sys(*args)
     quiet = args.pop if args.last == :quiet
 

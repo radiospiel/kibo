@@ -81,7 +81,7 @@ module Kibo::Heroku
   
   # returns names of all apps for the current user on heroku
   def apps
-    @apps ||= Kibo::System.heroku("apps").
+    @apps ||= Kibo::System.heroku("apps", :quiet).
       split(/\n/).
       reject { |line| line.empty? || line =~ /=== / }.
       map { |line| line.split(" ").first }

@@ -88,6 +88,10 @@ class Kibo::Instance < String
     []
   end
   
+  def instance_name
+    self.split("-", 2).last
+  end
+  
   class Freemium < self
     def initialize(config, role, number)
       super config, role, 1
