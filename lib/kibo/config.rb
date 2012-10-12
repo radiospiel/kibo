@@ -93,8 +93,6 @@ class Kibo::Instance < String
     def initialize(config, role, number)
       super config, role, 1, number
       @number = number
-    
-      concat "#{@number}"
     end
   end
 end
