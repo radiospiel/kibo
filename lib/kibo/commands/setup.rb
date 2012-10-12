@@ -50,8 +50,18 @@ module Kibo::Commands
     
     true
   end
+
+  def list_heroku(what, instance)
+    heroku!(what, "--app", instance, :quiet).
+      split("\n").
+      reject  { |line| line =~ /^=== / }.
+      map     { |line| line.split(/\s+/).first }
+  end
   
   def share_instance(instance)
+    existing_sharings = list_heroku("sharing", instance)
+
+    missing_sharings = Kibo.config.sharing - existing_sharings
     Kibo.config.sharing.each do |email|
       heroku! "sharing:add", email, "--app", instance
     end
@@ -60,16 +70,10 @@ module Kibo::Commands
   def provide_instance(instance)
     partial_instance_name = instance.split("-").last # e.g. "web1"
 
-    return unless instance_addons = Kibo.config.addons[partial_instance_name]
+    instance_addons = Kibo.config.addons[partial_instance_name] || []
+    return if instance_addons.empty? 
 
-    existing_instance_addons = 
-      heroku("addons", "--app", instance, :quiet).
-      split("\n").
-      map do |line| 
-        next if line =~ /^=== /
-        line.split(/\s+/).first
-      end.compact
-
+    existing_instance_addons = list_heroku("addons", instance)
     W "[#{instance}] addons", *existing_instance_addons
 
     missing = instance_addons - existing_instance_addons
