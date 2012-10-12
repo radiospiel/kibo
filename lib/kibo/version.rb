@@ -1,5 +1,5 @@
 module Kibo
-  VERSION = "0.4.6"
+  VERSION = "0.4.7"
   # Note: Keep the '"' string characters here!
 end
 
