@@ -79,23 +79,19 @@ end
 class Kibo::Instance < String
   attr :count, :role
   
-  def initialize(config, role, count)
+  def initialize(config, role, count, number=1)
     @role, @count = role, count
     
-    super "#{config.namespace}-#{config.environment}-#{role}"
+    super "#{config.namespace}-#{config.environment}-#{role}#{number}"
   end
 
-  def addons
-    []
-  end
-  
   def instance_name
     self.split("-", 2).last
   end
   
   class Freemium < self
     def initialize(config, role, number)
-      super config, role, 1
+      super config, role, 1, number
       @number = number
     
       concat "#{@number}"
